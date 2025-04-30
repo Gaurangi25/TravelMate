@@ -407,6 +407,74 @@ void planTrip(vector<City> &cities, vector<vector<pair<int, int>>> &graph)
     }
 }
 
+// Budget Management
+void manageBudget()
+{
+    int budget, expense = 0, choice, amount;
+    string desc;
+
+    cout << "\n\n----------------------------------------------------------\n";
+    cout << "              Travel Budget Management\n";
+    cout << "----------------------------------------------------------\n";
+
+    cout << "Enter your total travel budget: ";
+    cin >> budget;
+
+    vector<pair<string, int>> expenses;
+
+    do
+    {
+        cout << "\n1. Add Expense\n2. View Summary\n3. Exit Budget Manager\nEnter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            cout << "Enter expense description: ";
+            cin.ignore();
+            getline(cin, desc);
+            cout << "Enter amount: ";
+            cin >> amount;
+
+            if (expense + amount > budget)
+            {
+                cout << "Warning: This expense exceeds your total budget!\n";
+            }
+
+            expense += amount;
+            expenses.push_back({desc, amount});
+            break;
+
+        case 2:
+            cout << "\n\n----------------------------------------------------------\n";
+
+            cout << " Expense Summary:\n";
+            cout << "----------------------------------------------------------\n\n";
+
+            for (auto &e : expenses)
+            {
+                cout << "- " << e.first << " : " << e.second << " units\n";
+            }
+            cout << "Total Expenses : " << expense << " units\n";
+            cout << "Remaining Budget : " << budget - expense << " units\n";
+
+            cout << "\n----------------------------------------------------------\n";
+
+            break;
+
+        case 3:
+            cout << "Exiting Budget Manager...\n";
+            break;
+
+        default:
+            cout << "Invalid choice. Try again.\n";
+        }
+
+    } while (choice != 3);
+
+    cout << "----------------------------------------------------------\n\n";
+}
+
 // File handling functions
 void loadUsers()
 {
@@ -472,6 +540,7 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
         case 1:
             user.displayProfile();
             break;
+
         case 2:
         {
             int src, dest;
@@ -495,9 +564,11 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 3:
             planTrip(cities, graph);
             break;
+
         case 4:
         {
             cout << "\nList of available cities:\n";
@@ -514,20 +585,25 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 5:
         {
             int cityIndex;
             cout << "\nEnter the city index (0-" << cities.size() - 1 << ") to view information: ";
             cin >> cityIndex;
+            cout << "\n-------------------------------------------------------------------\n";
             if (cityIndex >= 0 && cityIndex < cities.size())
             {
-                cout << "\nCity Name: " << cities[cityIndex].name << endl;
-                cout << "Available Destinations:\n";
+                cout << "City Name : " << cities[cityIndex].name << endl;
+                cout << "-------------------------------------------------------------------\n";
+
+                cout << "\nAvailable Destinations:\n";
                 for (auto &dest : cities[cityIndex].destinations)
                 {
                     cout << "- " << dest.name << ": " << dest.description << "\n";
                     cout << "  Cost: " << dest.cost << " units, Enjoyment: " << dest.enjoyment << " points\n";
                 }
+                cout << "\n-------------------------------------------------------------------\n\n\n";
             }
             else
             {
@@ -535,6 +611,7 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 6:
         {
             string newName, newEmail, newPassword;
@@ -570,9 +647,11 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             cout << "\nProfile updated successfully!\n";
         }
         break;
+
         case 7:
             cout << "\nLogging out...\n";
             return; // Return to the login menu
+
         case 8:
         {
             char confirm;
@@ -592,15 +671,20 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 9:
         {
-            double budget;
-            cout << "\nEnter your travel budget: ";
-            cin >> budget;
+            // double budget;
+            // cout << "\nEnter your travel budget: ";
+            // cin >> budget;
 
-            // Instead of just printing a suggestion, use the Knapsack algorithm
-            optimalTravelItinerary(cities, (int)budget);
+            // // Instead of just printing a suggestion, use the Knapsack algorithm
+            // optimalTravelItinerary(cities, (int)budget);
+
+            manageBudget();
+            break;
         }
+
         break;
         case 10:
             cout << "\nExiting TravelMate. Have a great journey!\n";

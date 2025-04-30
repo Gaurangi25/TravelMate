@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 using namespace std;
+#include <utility>
 
 class User
 {
@@ -123,6 +124,54 @@ public:
         graph[4].push_back({1, 50}); // E -> B
 
         return graph;
+    }
+};
+
+// class to represent team members
+class TripGroup
+{
+public:
+    vector<string> members;
+    unordered_map<string, int> paid;
+    int totalExpense = 0;
+
+    void addMember(const string &name)
+    {
+        members.push_back(name);
+        paid[name] = 0;
+    }
+
+    void addExpense(const string &expenseName, int amount, int payerIndex)
+    {
+        if (payerIndex >= 0 && payerIndex < members.size())
+        {
+            string payer = members[payerIndex];
+            paid[payer] += amount;
+            totalExpense += amount;
+            cout << "Expense added: " << expenseName << " | Amount: " << amount << " | Paid by: " << payer << endl;
+        }
+        else
+        {
+            cout << "Invalid payer index.\n";
+        }
+    }
+
+    void calculateShares()
+    {
+        cout << "\n-------- Expense Split Summary --------\n";
+        int perPersonShare = totalExpense / members.size();
+
+        for (const string &member : members)
+        {
+            int balance = paid[member] - perPersonShare;
+            if (balance > 0)
+                cout << member << " is owed " << balance << " units.\n";
+            else if (balance < 0)
+                cout << member << " owes " << -balance << " units.\n";
+            else
+                cout << member << " is settled.\n";
+        }
+        cout << "----------------------------------------\n";
     }
 };
 
@@ -407,6 +456,74 @@ void planTrip(vector<City> &cities, vector<vector<pair<int, int>>> &graph)
     }
 }
 
+// Budget Management
+void manageBudget()
+{
+    int budget, expense = 0, choice, amount;
+    string desc;
+
+    cout << "\n\n----------------------------------------------------------\n";
+    cout << "              Travel Budget Management\n";
+    cout << "----------------------------------------------------------\n";
+
+    cout << "Enter your total travel budget: ";
+    cin >> budget;
+
+    vector<pair<string, int>> expenses;
+
+    do
+    {
+        cout << "\n1. Add Expense\n2. View Summary\n3. Exit Budget Manager\nEnter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            cout << "Enter expense description: ";
+            cin.ignore();
+            getline(cin, desc);
+            cout << "Enter amount: ";
+            cin >> amount;
+
+            if (expense + amount > budget)
+            {
+                cout << "Warning: This expense exceeds your total budget!\n";
+            }
+
+            expense += amount;
+            expenses.push_back({desc, amount});
+            break;
+
+        case 2:
+            cout << "\n\n----------------------------------------------------------\n";
+
+            cout << " Expense Summary:\n";
+            cout << "----------------------------------------------------------\n\n";
+
+            for (auto &e : expenses)
+            {
+                cout << "- " << e.first << " : " << e.second << " units\n";
+            }
+            cout << "Total Expenses : " << expense << " units\n";
+            cout << "Remaining Budget : " << budget - expense << " units\n";
+
+            cout << "\n----------------------------------------------------------\n";
+
+            break;
+
+        case 3:
+            cout << "Exiting Budget Manager...\n";
+            break;
+
+        default:
+            cout << "Invalid choice. Try again.\n";
+        }
+
+    } while (choice != 3);
+
+    cout << "----------------------------------------------------------\n\n";
+}
+
 // File handling functions
 void loadUsers()
 {
@@ -459,11 +576,13 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
         cout << "3. Plan My Trip\n";
         cout << "4. View All Cities\n";
         cout << "5. View City Information\n";
-        cout << "6. Update Profile\n";
-        cout << "7. Logout\n";
-        cout << "8. Delete My Account\n";
-        cout << "9. Travel Budget Management\n";
-        cout << "10. Exit\n";
+        cout << "6. Group Expense Split (Splitwise)\n";
+        cout << "7. Travel Budget Management\n";
+        cout << "8. Update Profile\n";
+        cout << "9. Logout\n";
+        cout << "10. Delete My Account\n";
+        cout << "11. Exit\n";
+
         cout << "Choose an option: ";
         cin >> choice;
 
@@ -472,6 +591,7 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
         case 1:
             user.displayProfile();
             break;
+
         case 2:
         {
             int src, dest;
@@ -495,9 +615,11 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 3:
             planTrip(cities, graph);
             break;
+
         case 4:
         {
             cout << "\nList of available cities:\n";
@@ -514,20 +636,25 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 5:
         {
             int cityIndex;
             cout << "\nEnter the city index (0-" << cities.size() - 1 << ") to view information: ";
             cin >> cityIndex;
+            cout << "\n-------------------------------------------------------------------\n";
             if (cityIndex >= 0 && cityIndex < cities.size())
             {
-                cout << "\nCity Name: " << cities[cityIndex].name << endl;
-                cout << "Available Destinations:\n";
+                cout << "City Name : " << cities[cityIndex].name << endl;
+                cout << "-------------------------------------------------------------------\n";
+
+                cout << "\nAvailable Destinations:\n";
                 for (auto &dest : cities[cityIndex].destinations)
                 {
                     cout << "- " << dest.name << ": " << dest.description << "\n";
                     cout << "  Cost: " << dest.cost << " units, Enjoyment: " << dest.enjoyment << " points\n";
                 }
+                cout << "\n-------------------------------------------------------------------\n\n\n";
             }
             else
             {
@@ -535,7 +662,66 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
+
         case 6:
+        {
+            TripGroup group;
+            int numMembers;
+            cout << "\nEnter number of travelers in the group: ";
+            cin >> numMembers;
+
+            cin.ignore(); // Clear newline buffer
+            for (int i = 0; i < numMembers; ++i)
+            {
+                string name;
+                cout << "Enter name of traveler " << (i + 1) << ": ";
+                getline(cin, name);
+                group.addMember(name);
+            }
+
+            int addMore;
+            do
+            {
+                string expenseName;
+                int amount, payerIndex;
+
+                cout << "\nEnter expense name: ";
+                getline(cin, expenseName);
+                cout << "Enter amount: ";
+                cin >> amount;
+
+                cout << "Who paid for this? Select index:\n";
+                for (int i = 0; i < group.members.size(); ++i)
+                    cout << i << " - " << group.members[i] << endl;
+                cout << "Enter payer index: ";
+                cin >> payerIndex;
+                cin.ignore();
+
+                group.addExpense(expenseName, amount, payerIndex);
+
+                cout << "Do you want to add another expense? (1 = Yes, 0 = No): ";
+                cin >> addMore;
+                cin.ignore();
+            } while (addMore == 1);
+
+            group.calculateShares();
+        }
+        break;
+
+        case 7:
+        {
+            // double budget;
+            // cout << "\nEnter your travel budget: ";
+            // cin >> budget;
+
+            // // Instead of just printing a suggestion, use the Knapsack algorithm
+            // optimalTravelItinerary(cities, (int)budget);
+
+            manageBudget();
+            break;
+        }
+
+        case 8:
         {
             string newName, newEmail, newPassword;
             cout << "\nEnter new name (or press enter to skip): ";
@@ -570,10 +756,12 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             cout << "\nProfile updated successfully!\n";
         }
         break;
-        case 7:
+
+        case 9:
             cout << "\nLogging out...\n";
             return; // Return to the login menu
-        case 8:
+
+        case 10:
         {
             char confirm;
             cout << "\nAre you sure you want to delete your account? (Y/N): ";
@@ -592,23 +780,16 @@ void showMainMenu(User &user, vector<City> &cities, vector<vector<pair<int, int>
             }
         }
         break;
-        case 9:
-        {
-            double budget;
-            cout << "\nEnter your travel budget: ";
-            cin >> budget;
 
-            // Instead of just printing a suggestion, use the Knapsack algorithm
-            optimalTravelItinerary(cities, (int)budget);
-        }
-        break;
-        case 10:
+        case 11:
             cout << "\nExiting TravelMate. Have a great journey!\n";
             break;
+
         default:
             cout << "\nInvalid choice. Try again.\n";
         }
-    } while (choice != 10);
+
+    } while (choice != 11);
 }
 
 // Sign up function
