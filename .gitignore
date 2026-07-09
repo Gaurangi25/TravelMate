@@ -1,0 +1,29 @@
+# Build outputs
+*.exe
+*.out
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Build directories
+build/
+bin/
+obj/
+out/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.user
+*.suo
+*.log
+
+# Local credential-style data
+data/Users.txt
+
+# Temporary files
+tempCodeRunnerFile.cpp
