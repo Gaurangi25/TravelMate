@@ -32,6 +32,9 @@ void showMainMenu(const User& user, const unordered_map<int, City>& cities, cons
     do {
         printMenu();
         if (!readInt("Choose an option: ", choice)) {
+            if (cin.eof()) {
+                break;
+            }
             choice = 0;
             continue;
         }
@@ -86,6 +89,9 @@ int main() {
         cout << "2. Login\n";
         cout << "3. Exit\n";
         if (!readInt("Choose an option: ", choice)) {
+            if (cin.eof()) {
+                break;
+            }
             choice = 0;
             continue;
         }

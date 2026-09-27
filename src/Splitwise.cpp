@@ -78,8 +78,9 @@ void manageGroupExpenses() {
     int expenseCount;
 
     cout << "\nEnter group name: ";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    getline(cin, splitwise.name);
+    if (!(cin >> ws) || !getline(cin, splitwise.name)) {
+        return;
+    }
 
     if (!readInt("Enter number of members: ", memberCount)) {
         return;

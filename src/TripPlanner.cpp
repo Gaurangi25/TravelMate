@@ -3,6 +3,7 @@
 #include "InputUtils.h"
 
 #include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <unordered_set>
 
@@ -81,15 +82,21 @@ void showAllCityDistances(const unordered_map<int, City>& cities, const CityGrap
 }
 
 // 0/1 Knapsack DP: maximizes destination enjoyment under a fixed city budget.
-// Time: O(N * Budget)
-// Space: O(N * Budget)
+// Time: O(N * min(Budget, MaxCityCost))
+// Space: O(N * min(Budget, MaxCityCost))
 void optimizeAndDisplayDestinations(const vector<Destination>& destinations, int budget) {
     int n = static_cast<int>(destinations.size());
-    vector<vector<int>> dp(n + 1, vector<int>(budget + 1, 0));
+    int totalPossibleCost = 0;
+    for (const auto& dest : destinations) {
+        totalPossibleCost += dest.cost;
+    }
+
+    int effectiveBudget = min(budget, totalPossibleCost);
+    vector<vector<int>> dp(n + 1, vector<int>(effectiveBudget + 1, 0));
 
     for (int i = 1; i <= n; ++i) {
         const Destination& dest = destinations[i - 1];
-        for (int b = 0; b <= budget; ++b) {
+        for (int b = 0; b <= effectiveBudget; ++b) {
             int exclude = dp[i - 1][b];
             int include = exclude;
             if (dest.cost <= b) {
@@ -99,7 +106,7 @@ void optimizeAndDisplayDestinations(const vector<Destination>& destinations, int
         }
     }
 
-    int remaining = budget;
+    int remaining = effectiveBudget;
     int totalCost = 0;
     vector<Destination> selected;
 
@@ -113,7 +120,7 @@ void optimizeAndDisplayDestinations(const vector<Destination>& destinations, int
     }
     reverse(selected.begin(), selected.end());
 
-    cout << "\nMaximum Enjoyment: " << dp[n][budget] << '\n';
+    cout << "\nMaximum Enjoyment: " << dp[n][effectiveBudget] << '\n';
 
     if (selected.empty()) {
         cout << "No destination can be selected within the given budget.\n";
@@ -194,12 +201,72 @@ int tsp(int mask, int pos, const vector<vector<int>>& dist, vector<vector<int>>&
     return dp[mask][pos] = best;
 }
 
+void displayItineraryBreakdown(const vector<int>& routeOrder,
+                               const unordered_map<int, City>& cities,
+                               int totalDistance) {
+    cout << "\n=========================================================================================\n";
+    cout << "                     Optimal Trip Itinerary Breakdown (Cost & Enjoyment)\n";
+    cout << "=========================================================================================\n";
+
+    int grandTotalCost = 0;
+    int grandTotalEnjoyment = 0;
+    int grandTotalDuration = 0;
+
+    for (size_t i = 0; i < routeOrder.size(); ++i) {
+        int cityId = routeOrder[i];
+        const City& city = cities.at(cityId);
+
+        cout << "\nStop " << (i + 1) << ": " << city.name 
+             << " [Weather: " << city.weather << "]\n";
+        cout << "-----------------------------------------------------------------------------------------\n";
+        cout << left << setw(38) << "Tourist Destination"
+             << setw(14) << "Cost (Rs.)"
+             << setw(14) << "Enjoyment"
+             << "Duration\n";
+        cout << "-----------------------------------------------------------------------------------------\n";
+
+        int cityCost = 0;
+        int cityEnjoyment = 0;
+        int cityDuration = 0;
+
+        for (const Destination& dest : city.destinations) {
+            cout << left << setw(38) << dest.name
+                 << "Rs. " << setw(10) << dest.cost
+                 << setw(14) << (to_string(dest.enjoyment) + "/10")
+                 << dest.duration << (dest.duration == 1 ? " hour" : " hours") << '\n';
+            cityCost += dest.cost;
+            cityEnjoyment += dest.enjoyment;
+            cityDuration += dest.duration;
+        }
+
+        cout << "-----------------------------------------------------------------------------------------\n";
+        cout << "City Subtotal -> Cost: Rs. " << cityCost
+             << " | Enjoyment: " << cityEnjoyment << " pts"
+             << " | Sightseeing Time: " << cityDuration << " hrs\n";
+
+        grandTotalCost += cityCost;
+        grandTotalEnjoyment += cityEnjoyment;
+        grandTotalDuration += cityDuration;
+    }
+
+    cout << "\n=========================================================================================\n";
+    cout << "                               Overall Itinerary Summary\n";
+    cout << "=========================================================================================\n";
+    cout << "Total Travel Distance     : " << totalDistance << " km\n";
+    cout << "Total Destination Cost    : Rs. " << grandTotalCost << '\n';
+    cout << "Total Potential Enjoyment : " << grandTotalEnjoyment << " points\n";
+    cout << "Total Sightseeing Duration: " << grandTotalDuration << " hours\n";
+    cout << "=========================================================================================\n";
+}
+
 void printOptimalRoundTrip(int mask, int pos, const vector<vector<int>>& parent,
                            const vector<int>& citiesToVisit,
                            const unordered_map<int, City>& cities,
-                           int startIndex) {
-    cout << "Optimal Round Trip:\n";
+                           int startIndex,
+                           vector<int>& routeOrder) {
+    cout << "\nOptimal Round Trip Route:\n";
     cout << cities.at(citiesToVisit[pos]).name;
+    routeOrder.push_back(citiesToVisit[pos]);
 
     while (mask != (1 << static_cast<int>(citiesToVisit.size())) - 1) {
         int next = parent[mask][pos];
@@ -208,6 +275,7 @@ void printOptimalRoundTrip(int mask, int pos, const vector<vector<int>>& parent,
             return;
         }
         cout << " -> " << cities.at(citiesToVisit[next]).name;
+        routeOrder.push_back(citiesToVisit[next]);
         mask |= (1 << next);
         pos = next;
     }
@@ -307,5 +375,11 @@ void planOptimalRoundTrip(const unordered_map<int, City>& cities, const CityGrap
     }
 
     cout << "\nMinimum Travel Distance: " << result << " km\n";
-    printOptimalRoundTrip(1 << startIndex, startIndex, parent, citiesToVisit, cities, startIndex);
+    vector<int> routeOrder;
+    printOptimalRoundTrip(1 << startIndex, startIndex, parent, citiesToVisit, cities, startIndex, routeOrder);
+
+    int viewBreakdownChoice = 1;
+    if (readInt("\nView destination enjoyment, price, and duration breakdown for this route? (1 = Yes, 0 = No): ", viewBreakdownChoice) && viewBreakdownChoice == 1) {
+        displayItineraryBreakdown(routeOrder, cities, result);
+    }
 }

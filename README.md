@@ -145,15 +145,63 @@ Enter the city ID you want to visit: 2
 Enter your destination budget: 550
 
 Destination Budget Optimizer for Jaipur
-Maximum Enjoyment: 25
+Maximum Enjoyment: 30
 
 Recommended Destinations:
 1. Hawa Mahal - Rs. 100
-2. Amber Fort - Rs. 400
+2. City Palace - Rs. 200
 3. Jantar Mantar - Rs. 50
+4. Nahargarh Fort - Rs. 100
 
-Total Cost: Rs. 550
-Remaining Budget: Rs. 0
+Total Cost: Rs. 450
+Remaining Budget: Rs. 100
+```
+
+Optimal Round Trip with Itinerary Breakdown example:
+
+```text
+Choose an option: 3
+Enter number of cities to visit (1-16): 3
+Enter city IDs to visit:
+City 1: 0
+City 2: 2
+City 3: 3
+Enter starting city ID: 0
+
+Minimum Travel Distance: 750 km
+
+Optimal Round Trip Route:
+Delhi -> Jaipur -> Agra -> Delhi
+
+View destination enjoyment, price, and duration breakdown for this route? (1 = Yes, 0 = No): 1
+
+=========================================================================================
+                     Optimal Trip Itinerary Breakdown (Cost & Enjoyment)
+=========================================================================================
+
+Stop 1: Delhi [Weather: Hot in summer, cold in winter]
+-----------------------------------------------------------------------------------------
+Tourist Destination                   Cost (Rs.)    Enjoyment     Duration
+-----------------------------------------------------------------------------------------
+Red Fort                              Rs. 500       8/10          2 hours
+India Gate                            Rs. 0         7/10          1 hour
+Qutub Minar                           Rs. 300       8/10          2 hours
+Lotus Temple                          Rs. 0         7/10          1 hour
+Humayun's Tomb                        Rs. 250       8/10          2 hours
+-----------------------------------------------------------------------------------------
+City Subtotal -> Cost: Rs. 1050 | Enjoyment: 38 pts | Sightseeing Time: 8 hrs
+
+Stop 2: Jaipur [Weather: Hot and dry]
+-----------------------------------------------------------------------------------------
+...
+=========================================================================================
+                               Overall Itinerary Summary
+=========================================================================================
+Total Travel Distance     : 750 km
+Total Destination Cost    : Rs. 2075
+Total Potential Enjoyment : 117 points
+Total Sightseeing Duration: 29 hours
+=========================================================================================
 ```
 
 ## 11. Limitations

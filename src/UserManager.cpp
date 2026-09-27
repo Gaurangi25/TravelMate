@@ -13,7 +13,7 @@ const string USER_FILE_PATH = "data/Users.txt";
 
 bool isValidEmail(const string& email) {
     size_t atPos = email.find('@');
-    if (atPos == string::npos || email.find('@', atPos + 1) != string::npos) {
+    if (atPos == string::npos || atPos == 0 || email.find('@', atPos + 1) != string::npos) {
         return false;
     }
 
@@ -47,6 +47,9 @@ void loadUsers() {
 
     string line;
     while (getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
         if (line.empty()) {
             continue;
         }
@@ -80,10 +83,15 @@ bool signup(string& mail) {
     cout << "Enter your name: ";
     getline(cin >> ws, name);
 
+    if (name.find('|') != string::npos) {
+        cout << "Name cannot contain the '|' character.\n";
+        return false;
+    }
+
     cout << "Enter your email: ";
     cin >> email;
 
-    if (!isValidEmail(email)) {
+    if (email.find('|') != string::npos || !isValidEmail(email)) {
         cout << "Invalid email format. Email must contain one '@' and a '.' after '@'.\n";
         return false;
     }
@@ -96,8 +104,8 @@ bool signup(string& mail) {
     cout << "Create a password: ";
     cin >> password;
 
-    if (!isValidPassword(password)) {
-        cout << "Password must be at least 6 characters long.\n";
+    if (password.find('|') != string::npos || !isValidPassword(password)) {
+        cout << "Password must be at least 6 characters long and cannot contain '|'.\n";
         return false;
     }
 
